@@ -267,8 +267,11 @@ namespace DeveloperTools.AnimationPreview
             if (clipIndex == -1)
                 return null;
 
-            Animator animator = editorTarget.animator;
-            AnimationClip[] clips = animator.runtimeAnimatorController.animationClips;
+            AnimationClip[] clips = editorTarget.animator.runtimeAnimatorController.animationClips;
+
+            if (clipIndex >= clips.Length)
+                return null;
+
             AnimationClip clip = clips[clipIndex];
 
             return clip;
