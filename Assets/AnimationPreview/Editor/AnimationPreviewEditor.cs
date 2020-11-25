@@ -131,7 +131,7 @@ namespace DeveloperTools.AnimationPreview
             {
                 EditorGUILayout.LabelField("Clip List", GUIStyles.BoxTitleStyle);
 
-                if (editorTarget.animator)
+                if (editorTarget.animator && editorTarget.animator.runtimeAnimatorController)
                 {
                     AnimationClip[] clips = editorTarget.animator.runtimeAnimatorController.animationClips;
                     for (int i = 0; i < clips.Length; i++)
@@ -183,7 +183,7 @@ namespace DeveloperTools.AnimationPreview
 
                 // reset the 
                 // set index to either -1 or the first index depending on the number of animations
-                editorTarget.clipIndex = editorTarget.animator == null || editorTarget.animator.runtimeAnimatorController.animationClips.Length == 0 ? -1 : 0;
+                editorTarget.clipIndex = editorTarget.animator == null || editorTarget.animator.runtimeAnimatorController == null || editorTarget.animator.runtimeAnimatorController.animationClips.Length == 0 ? -1 : 0;
 
                 UpdateClipName();
 
