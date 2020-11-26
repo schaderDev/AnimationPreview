@@ -151,6 +151,12 @@ namespace DeveloperTools.AnimationPreview
                                     SetClip(i);
                                     PlayClip();
                                 }
+
+                                if (GUILayout.Button(EditorGUIUtility.IconContent("AnimationClip Icon", "Open Clip in Project"), GUIStyles.ToolbarButtonStyle))
+                                {
+                                    OpenClip( i);
+                                }
+
                             }
                             EditorGUILayout.EndHorizontal();
                         }
@@ -216,6 +222,22 @@ namespace DeveloperTools.AnimationPreview
 
         }
 
+        /// <summary>
+        /// Open the clip file in project view
+        /// </summary>
+        /// <param name="clipIndex"></param>
+        private void OpenClip(int clipIndex)
+        {
+
+            AnimationClip clip = GetClip(clipIndex);
+
+            if (!clip)
+                return;
+
+            Selection.activeObject = clip;
+
+        }
+
         private void ClipChanged()
         {
             if (isPlaying)
@@ -267,6 +289,11 @@ namespace DeveloperTools.AnimationPreview
             if (clipIndex == -1)
                 return null;
 
+            return GetClip(clipIndex);
+        }
+
+        private AnimationClip GetClip( int clipIndex)
+        {
             AnimationClip[] clips = editorTarget.animator.runtimeAnimatorController.animationClips;
 
             if (clipIndex >= clips.Length)
@@ -276,6 +303,7 @@ namespace DeveloperTools.AnimationPreview
 
             return clip;
         }
+
         #endregion Clip Navigation
 
         #region Clip Control
@@ -378,6 +406,22 @@ namespace DeveloperTools.AnimationPreview
                     _groupTitleStyle.fontStyle = FontStyle.Bold;
                 }
                 return _groupTitleStyle;
+            }
+        }
+
+        private static GUIStyle _toolbarButtonStyle;
+        public static GUIStyle ToolbarButtonStyle
+        {
+            get
+            {
+                if (_toolbarButtonStyle == null)
+                {
+                    _toolbarButtonStyle = new GUIStyle("Button");
+                    _toolbarButtonStyle.fixedWidth = 32f;
+                    _toolbarButtonStyle.fixedHeight = EditorGUIUtility.singleLineHeight + 1;
+
+                }
+                return _toolbarButtonStyle;
             }
         }
 
