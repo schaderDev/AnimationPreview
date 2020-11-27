@@ -21,6 +21,10 @@ namespace DeveloperTools.AnimationPreview
         private AnimationClip previewClip;
         private bool isPlaying = false;
 
+        int frameSlider = 0;
+        int totalframes = 1;
+        int currentFrame = 1;
+
         public void OnEnable()
         {
             editor = this;
@@ -108,11 +112,14 @@ namespace DeveloperTools.AnimationPreview
                         GUI.backgroundColor = isPlaying ? GUIStyles.PlayBackgroundColor : GUIStyles.DefaultBackgroundColor;
                         if (GUILayout.Button("Play"))
                         {
-                            PlayClip();
+                            PlayButtonClip();
                         }
                         GUI.backgroundColor = GUIStyles.DefaultBackgroundColor;
                     }
-
+                    if (GUILayout.Button("Pause"))
+                    {
+                        PauseButtonClip();
+                    }
                     if (GUILayout.Button("Reset"))
                     {
                         ResetClip();
@@ -120,6 +127,20 @@ namespace DeveloperTools.AnimationPreview
                     if (GUILayout.Button("Stop"))
                     {
                         StopClip();
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
+
+                EditorGUILayout.BeginHorizontal();
+                {
+                    // Start a code block to check for GUI changes
+                    EditorGUI.BeginChangeCheck();
+                    frameSlider = EditorGUILayout.IntSlider(frameSlider, 0, totalframes);
+
+                    // End the code block and update the label if a change occurred
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        SetAnimFrame();
                     }
                 }
                 EditorGUILayout.EndHorizontal();
@@ -197,7 +218,7 @@ namespace DeveloperTools.AnimationPreview
 
             }
         }
-        #endregion Inspector
+        #endregion Inspector        
 
         #region Clip Navigation
         private void PreviousClip()
@@ -319,14 +340,62 @@ namespace DeveloperTools.AnimationPreview
         }
 
 
-
         void DoPreview()
         {
             if (!previewClip)
                 return;
 
-            previewClip.SampleAnimation(editorTarget.gameObject, Time.deltaTime);
+            currentFrame = (int)(previewClip.length *
+                (editorTarget.animator.GetCurrentAnimatorStateInfo(0).normalizedTime % 1) * previewClip.frameRate);
+            totalframes = (int)(previewClip.length * previewClip.frameRate);
             
+            if (currentFrame >= totalframes - 1)
+            {
+                ResetClip();
+            }
+            if (isPlaying)
+            {
+                previewClip.SampleAnimation(editorTarget.gameObject, Time.deltaTime);
+            
+                editorTarget.animator.Update(Time.deltaTime);
+            }
+        }
+
+        private void PlayButtonClip()
+        {
+            isPlaying = true;
+
+            previewClip = GetClipToPreview();
+
+            EditorApplication.update -= DoPreview;
+            EditorApplication.update += DoPreview;
+        }
+
+        private void PauseButtonClip()
+        {
+            if (!previewClip)
+                return;
+            frameSlider = currentFrame;
+            isPlaying = false;
+
+        }
+
+        private void SetAnimFrame()
+        {
+            if (!previewClip)
+                return;
+
+            isPlaying = false;
+            float normalizedTime;
+            if (frameSlider == 0)
+            {
+                normalizedTime = 0;
+            }
+            else
+            {
+                normalizedTime = (float)frameSlider / (float)totalframes;
+            }         
+            editorTarget.animator.Play(previewClip.name,0, normalizedTime);
             editorTarget.animator.Update(Time.deltaTime);
         }
 
@@ -334,7 +403,7 @@ namespace DeveloperTools.AnimationPreview
         {
             if (!previewClip)
                 return;
-
+            frameSlider = 0;
             previewClip.SampleAnimation(editorTarget.gameObject, 0);
 
             Animator animator = editorTarget.animator;
