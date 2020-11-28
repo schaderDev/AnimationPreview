@@ -136,7 +136,7 @@ namespace DeveloperTools.AnimationPreview
                     // Start a code block to check for GUI changes
                     EditorGUI.BeginChangeCheck();
                     frameSlider = EditorGUILayout.IntSlider(frameSlider, 0, totalframes);
-
+                    Repaint();
                     // End the code block and update the label if a change occurred
                     if (EditorGUI.EndChangeCheck())
                     {
@@ -211,7 +211,13 @@ namespace DeveloperTools.AnimationPreview
                 // reset the 
                 // set index to either -1 or the first index depending on the number of animations
                 editorTarget.clipIndex = editorTarget.animator == null || editorTarget.animator.runtimeAnimatorController == null || editorTarget.animator.runtimeAnimatorController.animationClips.Length == 0 ? -1 : 0;
-
+                // set total frames of first clip for frame slider 
+                if (editorTarget.clipIndex != -1)
+                {
+                   AnimationClip clip = GetClip(editorTarget.clipIndex);
+                   totalframes = (int)(clip.length * clip.frameRate);
+                }
+ 
                 UpdateClipName();
 
                 EditorUtility.SetDirty(target);
@@ -348,15 +354,14 @@ namespace DeveloperTools.AnimationPreview
             currentFrame = (int)(previewClip.length *
                 (editorTarget.animator.GetCurrentAnimatorStateInfo(0).normalizedTime % 1) * previewClip.frameRate);
             totalframes = (int)(previewClip.length * previewClip.frameRate);
-            
             if (currentFrame >= totalframes - 1)
             {
                 ResetClip();
             }
             if (isPlaying)
             {
+                frameSlider = currentFrame;
                 previewClip.SampleAnimation(editorTarget.gameObject, Time.deltaTime);
-            
                 editorTarget.animator.Update(Time.deltaTime);
             }
         }
@@ -377,14 +382,14 @@ namespace DeveloperTools.AnimationPreview
                 return;
             frameSlider = currentFrame;
             isPlaying = false;
-
+            EditorApplication.update -= DoPreview;
         }
 
         private void SetAnimFrame()
         {
             if (!previewClip)
                 return;
-
+            EditorApplication.update -= DoPreview;
             isPlaying = false;
             float normalizedTime;
             if (frameSlider == 0)
